@@ -64,7 +64,7 @@ public class StatsActivity extends Activity implements LocationListener {
      */
     private class UIUpdateThread extends Thread {
 
-        private boolean isRunning = true;
+        private volatile boolean isRunning = true;
 
         public UIUpdateThread() {
             super("Stats.UIUpdateThread");
