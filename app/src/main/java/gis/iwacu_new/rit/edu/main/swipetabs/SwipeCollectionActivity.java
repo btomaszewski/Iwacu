@@ -16,7 +16,6 @@
 
 package gis.iwacu_new.rit.edu.main.swipetabs;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -47,14 +46,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
 
 import gis.iwacu_new.rit.edu.main.GPS;
 import gis.iwacu_new.rit.edu.main.GeometrySampleActivity;
 import gis.iwacu_new.rit.edu.main.RecorContent;
-import gis.iwacu_new.rit.edu.main.RecorContentPullParserHandler;
 import gis.iwacu_new.rit.edu.main.MainScreen;
+import gis.iwacu_new.rit.edu.main.RecorDocument;
 import gis.iwacu_new.rit.edu.youtube.PlayerViewDemoActivity;
 
 public class SwipeCollectionActivity extends FragmentActivity {
@@ -80,9 +77,8 @@ public class SwipeCollectionActivity extends FragmentActivity {
     public final static String VIDEO_TEXT = "VIDEO_TEXT";
     public final static String VIDEO_ID = "VIDEO_ID";
     public final static String QUIZ_URL = "QUIZ_URL";
-    
-    RecorContentPullParserHandler parser = new RecorContentPullParserHandler();
-    static List<RecorContent> recor_doc = null;
+
+    static RecorDocument recor_doc = null;
 
     /**
      * The {@link android.support.v4.view.ViewPager} that will display the object collection.
@@ -103,9 +99,8 @@ public class SwipeCollectionActivity extends FragmentActivity {
             File Learning_Content_File = new File(IwacuDir,getResources().getString((R.string.learning_file_name)));
 
             //http://developer.android.com/reference/java/io/FileInputStream.html
-            InputStream in = null;
-            in = new BufferedInputStream(new FileInputStream(Learning_Content_File));
-            recor_doc = parser.parse(in);
+            InputStream in = new FileInputStream(Learning_Content_File);
+            recor_doc = RecorDocument.parse(in);
 
             // Create an adapter that when requested, will return a fragment representing an object in
             // the collection.
@@ -126,7 +121,7 @@ public class SwipeCollectionActivity extends FragmentActivity {
             mViewPager.setAdapter(mDemoCollectionPagerAdapter);
 
         } catch (IOException e) {
-        	e.printStackTrace();
+            e.printStackTrace();
             TextView textView = new TextView(this);
             textView.setText(getResources().getText(R.string.error_loading_content));
             setContentView(textView);
@@ -222,8 +217,6 @@ public class SwipeCollectionActivity extends FragmentActivity {
     @SuppressLint("ValidFragment")
 	public static  class DemoObjectFragment extends Fragment  {
 
-        public static final String ARG_OBJECT = "object";
-
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
@@ -257,8 +250,7 @@ public class SwipeCollectionActivity extends FragmentActivity {
 	        	
 	        	//go get the bitmap
 	        	String bitmap_path = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/" + getResources().getString((R.string.Iwacu_Images_Directory)) ;
-	        	Bitmap current_bitmap = null;
-	        	current_bitmap = BitmapFactory.decodeFile(bitmap_path  +  file_name);
+	        	Bitmap current_bitmap = BitmapFactory.decodeFile(bitmap_path  +  file_name);
 	        	qImageView.setImageBitmap(current_bitmap);
         	
         	} else {

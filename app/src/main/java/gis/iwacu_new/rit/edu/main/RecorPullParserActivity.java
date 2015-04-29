@@ -5,7 +5,6 @@ package gis.iwacu_new.rit.edu.main;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -20,7 +19,7 @@ import android.widget.ListView;
 public class RecorPullParserActivity extends Activity implements OnItemClickListener {
     private ListView listView;
     private FileManager fileManager;
-    private List<RecorContent> recor_doc = null;
+    private RecorDocument recorDocument = null;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,18 +36,15 @@ public class RecorPullParserActivity extends Activity implements OnItemClickList
 
             //http://developer.android.com/reference/java/io/FileInputStream.html
             FileInputStream in = new FileInputStream(learningContentFile);
-            RecorContentPullParserHandler parser = new RecorContentPullParserHandler();
-            recor_doc = parser.parse(in);
+            recorDocument = RecorDocument.parse(in);
             in.close();
-
-            //recor_doc = parser.parse(getAssets().open("project.xml"));
 
             //https://github.com/thecodepath/android_guides/wiki/Using-an-ArrayAdapter-with-ListView
             //http://developer.android.com/guide/topics/ui/declaring-layout.html
             //http://developer.android.com/training/implementing-navigation/lateral.html
 
             //still needed?
-            ArrayAdapter<RecorContent> adapter = new ArrayAdapter<RecorContent>(this, R.layout.list_item, recor_doc);
+            ArrayAdapter<RecorContent> adapter = new ArrayAdapter<RecorContent>(this, R.layout.list_item, recorDocument.getContent());
             listView.setAdapter(adapter);
 
         } catch (IOException e) {

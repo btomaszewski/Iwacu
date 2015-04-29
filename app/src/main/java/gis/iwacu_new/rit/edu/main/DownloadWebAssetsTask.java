@@ -1,41 +1,39 @@
 package gis.iwacu_new.rit.edu.main;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.AsyncTask;
-import android.os.Environment;
+import android.util.Log;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.List;
 
 /**
  * Downloads assets from the web.
- *
- * TODO Refactor this class such that it is not coupled with Activity if possible.
- * TODO Document this class.
- * TODO Use a standard data format such as XML or JSON instead of whatever this is.
  */
 public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
 
-    public static final String SPLIT_CHAR_1 = "~";
-    public static final String SPLIT_CHAR_2 = "_";
-    public static final String LEARNING_CONTENT = "learning_content";
+    private static final String TAG = DownloadWebAssetsTask.class.getName();
+    private static final int BUFFER_SIZE = 1024;
 
-    // TODO change this to a Context
     private Activity context;
+
+    /**
+     * File which holds the current information about versions of web assets.
+     */
+    private File webAssetsFile;
+    private FileManager fileManager;
 
     /**
      * Constructor.
@@ -43,97 +41,125 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
      */
     public DownloadWebAssetsTask(Activity ctx) {
         context = ctx;
+        fileManager = new FileManager(context);
+        webAssetsFile = fileManager.getFile("web_assets.json");
     }
 
-    // Do the long-running work in here
     protected Void doInBackground(URL... urls) {
-        URLConnection connection = null;
         try {
-            connection = urls[0].openConnection();
+            String webJsonString = readStream(urls[0].openStream());
+            JSONObject webData = (JSONObject) new JSONTokener(webJsonString).nextValue();
+            JSONObject localData = loadCurrentWebAssetData();
 
-            InputStream WebAsset_ContentStream = connection.getInputStream();
+            // now we handle the different things and download them if necessary
+            JSONObject learningContent = webData.getJSONObject("learning_content");
+            if (hasNewVersion(learningContent, localData.getJSONObject("learning_content"))) {
+                writeLocalContent(learningContent.getString("url"));
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(WebAsset_ContentStream));
-            StringBuilder out = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                out.append(line);
-                //inspect each line of the input file and take action accordingly
-                String[] temp_split = line.split(SPLIT_CHAR_1);
-
-                if (temp_split[0].equalsIgnoreCase(LEARNING_CONTENT)) {
-                    //this is XML content, check version and download and store locally if need be
-
-                    //http://developer.android.com/training/basics/data-storage/shared-preferences.html
-                    SharedPreferences sharedPref = context.getPreferences(Context.MODE_PRIVATE);
-                    String learning_version = getResources().getString((R.string.learning_version));
-                    String learningVersionDefault = getResources().getString((R.string.learning_version_default));
-                    String current_version = sharedPref.getString(learning_version, learningVersionDefault);
-
-                    //check the current version stored on the device against the web version
-                    String XMLVersion[] = temp_split[1].split(SPLIT_CHAR_2); //will come back with [1] being like v1.xml
-                    String WebVersion = XMLVersion[1].substring(1, 2);
-
-
-                    if (!WebVersion.equalsIgnoreCase(current_version)) {
-                        //new version was found, download, store locally and update current version
-
-                        writeLocalContent(temp_split[1]);
-
-                        //update internal version number after writing contents locally
-                        //SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sharedPref.edit();
-                        editor.putString(getResources().getString((R.string.learning_version)), WebVersion);
-                        editor.commit();
-                    }
-                } else if (temp_split[0].equalsIgnoreCase(getResources().getString((R.string.offline_database)))) {
-                    // TODO Why are you using the file name for versioning? Why? Are you TRYING to kill me?
-                    SharedPreferences sharedPref = context.getPreferences(Context.MODE_PRIVATE);
-                    String offline_database_version = getResources().getString((R.string.offline_database_version));
-                    String offline_database_version_default = getResources().getString((R.string.offline_database_version_default));
-                    String current_version = sharedPref.getString(offline_database_version, offline_database_version_default);
-
-
-                    //check the current version stored on the device against the web version
-                    String DatabaseVersion[] = temp_split[1].split(SPLIT_CHAR_2); //will come back with [1] being like v1.xml
-                    String DatabaseWebVersion = DatabaseVersion[1].substring(1, 2);
-
-                    if (!DatabaseWebVersion.equalsIgnoreCase(current_version)) {
-                        //new version was found, download, store locally and update current version
-
-                        //more redundant code..
-                        if (isExternalStorageWritable()) {
-                            try {
-                                URL url = new URL(temp_split[1]);
-
-                                //location on device
-                                File SDCardRoot = Environment.getExternalStorageDirectory();
-                                File DatabaseDir = new File(SDCardRoot, getResources().getString((R.string.Iwacu_Directory)) + "offline_database");
-                                File file = new File(DatabaseDir, getResources().getString((R.string.offline_map_database_name)));
-
-                                downloadFile(url, file);
-
-                                //update internal version number after writing contents locally
-                                //SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPref.edit();
-                                editor.putString(getResources().getString((R.string.offline_database_version)), DatabaseWebVersion);
-                                editor.commit();
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
+                // We save ONLY the things we know are updated just in case someone publishes
+                // a new version of the JSON file and the app isn't updated we don't want to
+                // just copy over all of webData.
+                localData.put("learning_content", learningContent);
             }
-            reader.close();
+
+            JSONObject offlineDatabase = webData.getJSONObject("offline_database");
+            if (hasNewVersion(offlineDatabase, localData.getJSONObject("offline_database"))) {
+                //location on device
+                File file = fileManager.getFile(R.string.offline_map_database_name);
+                downloadFile(new URL(offlineDatabase.getString("url")), file);
+                localData.put("offline_database", offlineDatabase);
+            }
+            // now we save the updated localData back to web_assets.json
+            saveCurrentWebAssetData(localData);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, e.getMessage(), e);
+        } catch (JSONException e) {
+            Log.e(TAG, e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * Read an input stream and convert it into a String object. readStream will call close() on
+     * the provided input stream.
+     *
+     * @param input - input stream to read
+     * @return A string containing the content of the input stream
+     * @throws IOException - Occurs when things go wrong.
+     */
+    private static String readStream(InputStream input) throws IOException {
+        InputStreamReader isr = null;
+        try {
+            isr = new InputStreamReader(input, "UTF-8");
+            StringBuilder sb = new StringBuilder();
+            char[] buffer = new char[BUFFER_SIZE];
+            int length;
+            while((length = isr.read(buffer)) > 0) {
+                sb.append(buffer, 0, length);
+            }
+            return sb.toString();
+        } finally {
+            if(isr != null) {
+                isr.close();
+            }
+        }
+    }
+
+    /**
+     * Reads the current version of web_assets.json
+     * @return The current web asset data
+     */
+    private JSONObject loadCurrentWebAssetData() throws IOException, JSONException {
+        // Make sure the web_assets.json file exists before we try to read it and if it doesn't
+        // then we write out the default built-in copy of it.
+        if (!webAssetsFile.exists()) {
+            writeDefaultConfig();
+        }
+        FileInputStream input = new FileInputStream(webAssetsFile);
+        return (JSONObject) new JSONTokener(readStream(input)).nextValue();
+    }
+
+    private void saveCurrentWebAssetData(JSONObject obj) throws IOException {
+        FileWriter output = null;
+        try {
+            output = new FileWriter(webAssetsFile);
+            output.write(obj.toString());
+        } finally {
+            if (output != null) {
+                output.close();
+            }
+        }
+    }
+
+    /**
+     * Save the default JSON config.
+     */
+    private void writeDefaultConfig() throws IOException {
+        InputStream input = context.getResources().openRawResource(R.raw.web_assets);
+        FileOutputStream output = new FileOutputStream(webAssetsFile);
+        streamCopy(input, output);
+        input.close();
+        output.close();
+    }
+
+    /**
+     * Copy data from the input to the output streams. Note that the caller is responsible for
+     * calling close() on the provided streams.
+     *
+     * @param input - Stream to read from
+     * @param output - Stream to write to
+     * @throws IOException - in case an IO problem happens
+     */
+    private static void streamCopy(InputStream input, OutputStream output) throws IOException {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int length;
+        while((length = input.read(buffer)) > 0) {
+            output.write(buffer, 0, length);
+        }
+    }
+
+    private boolean hasNewVersion(JSONObject next, JSONObject current) throws JSONException {
+        return !next.getString("version").equals(current.getString("version"));
     }
 
     /**
@@ -141,39 +167,30 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
      * @param url - the url to download from
      * @param file - the file to which we will save the content
      */
-    private void downloadFile(URL url, File file) throws IOException {
-        final int BUFFER_SIZE = 1024 * 4;
-
+    private static void downloadFile(URL url, File file) throws IOException {
         File directory = file.getParentFile();
         if (!directory.isDirectory()) {
             directory.mkdirs();
         }
 
         //this will be used to write the downloaded data into the file we created
-        FileOutputStream fileOutput = new FileOutputStream(file);
-
+        FileOutputStream fileOutput = null;
         //this will be used in reading the data from the internet
-        InputStream inputStream = url.openStream();
-
-        //create a buffer...
-        byte[] buffer = new byte[BUFFER_SIZE];
-        int bufferLength = 0; //used to store a temporary size of the buffer
-
+        InputStream inputStream = null;
         try {
-            //now, read through the input buffer and write the contents to the file
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                //add the data in the buffer to the file in the file output stream (the file on the sd card
-                fileOutput.write(buffer, 0, bufferLength);
-            }
+            fileOutput = new FileOutputStream(file);
+            inputStream = url.openStream();
+            // now simply do a stream copy
+            streamCopy(inputStream, fileOutput);
         } finally {
-            //close the output stream when done
-            fileOutput.close();
-            inputStream.close();
+            // ... and close the files
+            if (fileOutput != null) {
+                fileOutput.close();
+            }
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
-    }
-
-    private Resources getResources() {
-        return context.getResources();
     }
 
     /*
@@ -182,147 +199,53 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
      * todo - make updates for different file storage locations and types
      *
      */
-    private void writeLocalContent(String InputContent) {
-
-        //first make sure  external storage is writable
+    private void writeLocalContent(String contentUrl) {
         //http://developer.android.com/training/basics/data-storage/files.html
         //http://stackoverflow.com/questions/16333145/save-xml-from-url-and-read-it
-        if (isExternalStorageWritable()) {
+        try {
+            URL url = new URL(contentUrl);
+            //create the new connection
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.connect();
 
-            try {
+            //location on device
+            File learningContentFile = fileManager.getFile(R.string.learning_file_name);
+            //this will be used to write the downloaded data into the file we created
+            FileOutputStream fileOutput = new FileOutputStream(learningContentFile);
+            //this will be used in reading the data from the internet
+            InputStream inputStream = urlConnection.getInputStream();
+            streamCopy(inputStream, fileOutput);
+            //close the output stream when done
+            fileOutput.close();
+            inputStream.close();
 
-                URL url = new URL(InputContent);
-                //create the new connection
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.connect();
+            //*** now that the XML file has been downloaded, go and download all the images referenced in the XML file
+            //todo - much of this code is redundant with previous code, consolidate into one function
 
-                //location on device
+            //first parse the newly downloaded XML
 
-                File SDCardRoot = Environment.getExternalStorageDirectory();
-                //create the directory
-                File IwacuDir = new File(SDCardRoot, getResources().getString((R.string.Iwacu_Directory)));
-                if (!IwacuDir.exists()) {
-                    IwacuDir.mkdirs();
-                }
+            //get the learning content from external storage, should be updated based on checks done when the app is opening
+            //create the directory
+            File iwacuImgDir = fileManager.ensureDirectory("Images");
 
+            //parse the XML file to get the image references
+            FileInputStream in = new FileInputStream(learningContentFile);
+            RecorDocument recorDocument = RecorDocument.parse(in);
+            in.close();
 
-                File file = new File(IwacuDir, getResources().getString((R.string.learning_file_name)));
-
-
-                //this will be used to write the downloaded data into the file we created
-                FileOutputStream fileOutput = new FileOutputStream(file);
-
-                //this will be used in reading the data from the internet
-                InputStream inputStream = urlConnection.getInputStream();
-
-                //create a buffer...
-                byte[] buffer = new byte[1024];
-                int bufferLength = 0; //used to store a temporary size of the buffer
-
-                //now, read through the input buffer and write the contents to the file
-                while ((bufferLength = inputStream.read(buffer)) > 0) {
-                    //add the data in the buffer to the file in the file output stream (the file on the sd card
-                    fileOutput.write(buffer, 0, bufferLength);
-
-                }
-                //close the output stream when done
-                fileOutput.close();
-                urlConnection.disconnect();
-
-
-                //*** now that the XML file has been downloaded, go and download all the images referenced in the XML file
-                //todo - much of this code is redundant with previous code, consolidate into one function
-
-                //first parse the newly downloaded XML
-
-                //get the learning content from external storage, should be updated based on checks done when the app is opening
-                //create the directory
-                File IwacuImgDir = new File(SDCardRoot, getResources().getString((R.string.Iwacu_Images_Directory)));
-                if (!IwacuImgDir.exists()) {
-                    IwacuImgDir.mkdirs();
-                }
-
-
-                //parse the XML file to get the image references
-                RecorContentPullParserHandler parser = new RecorContentPullParserHandler();
-                List<RecorContent> recor_doc = null;
-                InputStream in = null;
-                File Learning_Content_File = new File(IwacuDir, getResources().getString((R.string.learning_file_name)));
-                in = new BufferedInputStream(new FileInputStream(Learning_Content_File));
-                recor_doc = parser.parse(in);
-
-
-                //assumes images are a directory off from where the XML learning file is located
-                //example - http://geoapps64.main.ad.rit.edu/rwanda/Iwacu/recor_v4.xml
-                //http://geoapps64.main.ad.rit.edu/rwanda/Iwacu/Img/
-
-                Integer IMG_URL_index = InputContent.lastIndexOf("/");
-                String IMG_URL_base = InputContent.substring(0, IMG_URL_index + 1) + "img";
-
-
-                //*** iterate through the XML images references and download them
-
-
-                for (int i = 0; i < recor_doc.size(); i++) { // each image reference...
-
-                    // get the image reference from the XML
-                    RecorContent temp = recor_doc.get(i);
-                    String currentIMG = temp.getImageUrl();
-
-                    // continue if images is not referenced
-                    if (currentIMG.length() < 5) {
-                        continue;
-                    }
-
-                    // get a local file ready
-                    File ImgFile = new File(IwacuImgDir, currentIMG);
-
-
-                    // get the images URL ready
-                    URL urlImg = new URL(IMG_URL_base + currentIMG);
-
-                    // create the new connection
-                    HttpURLConnection urlImgConnection = (HttpURLConnection) urlImg.openConnection();
-                    urlImgConnection.connect();
-
-
-                    FileOutputStream fileImgOutput = new FileOutputStream(ImgFile);
-
-                    // this will be used in reading the data from the internet
-                    InputStream inputImgStream = urlImgConnection.getInputStream();
-
-                    // create a buffer...
-                    byte[] Imgbuffer = new byte[2048];
-                    int bufferImgLength; //used to store a temporary size of the buffer
-
-                    // now, read through the input buffer and write the contents to the file
-                    while ((bufferImgLength = inputImgStream.read(Imgbuffer)) != -1) {
-                        // add the data in the buffer to the file in the file output stream
-                        // (the file on the sd card
-                        fileImgOutput.write(Imgbuffer, 0, bufferImgLength);
-                    }
-                    // close the output stream when done
-                    fileImgOutput.close();
-                    urlImgConnection.disconnect();
-
-
-                } // end for each image reference...
-
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            //*** iterate through the XML images references and download them
+            for (int i = 0; i < recorDocument.size(); i++) { // each image reference...
+                //get the image reference from the XML
+                RecorContent content = recorDocument.get(i);
+                String imageName = content.getImageUrl();
+                //get a local file ready
+                File imageFile = new File(iwacuImgDir, imageName);
+                //get the images URL ready
+                URL imageUrl = new URL(recorDocument.getBaseImageURL() + imageName);
+                downloadFile(imageUrl, imageFile);
+            } //end for each image reference...
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    }
-
-
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
     }
 }
