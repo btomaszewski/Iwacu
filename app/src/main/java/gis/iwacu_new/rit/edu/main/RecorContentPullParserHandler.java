@@ -14,6 +14,7 @@ public class RecorContentPullParserHandler {
 
     private RecorContent document;
     private String text;
+    private String baseImageUrl = null;
 
     public RecorContentPullParserHandler() {
         recor_doc = new ArrayList<RecorContent>();
@@ -45,8 +46,7 @@ public class RecorContentPullParserHandler {
                         text = parser.getText();
                         break;
 
-                    //use start tag, better for accessing attributes
-                    //*** TODO - find better way then using hard-coded strings for tag names
+                    // use start tag, better for accessing attributes
                     case XmlPullParser.START_TAG:
                         if (tagName.equalsIgnoreCase("document")) {
                             // add document object to list
@@ -57,8 +57,6 @@ public class RecorContentPullParserHandler {
                         } else if (tagName.equalsIgnoreCase("about")) {
                             document.setAbout(parser.nextText());
                         } else if (tagName.equalsIgnoreCase("activity")) {
-
-
                             //get attributes from the tag
                             //http://xjaphx.wordpress.com/2011/10/16/android-xml-adventure-parsing-xml-data-with-xmlpullparser/
 
@@ -66,25 +64,22 @@ public class RecorContentPullParserHandler {
                             document.setActivityName(parser.getAttributeValue(null, "name"));
                             document.setActivityData(parser.getAttributeValue(null, "map_coordinates"));
                             document.setActivity(parser.nextText());
-
                         } else if (tagName.equalsIgnoreCase("video")) {
-
-
                             //get attributes from the tag
                             //http://xjaphx.wordpress.com/2011/10/16/android-xml-adventure-parsing-xml-data-with-xmlpullparser/
 
                             //get the attributes first as the parse seems to miss them if the text is grabbed first
                             document.setVideoId(parser.getAttributeValue(null, "id"));
                             document.setVideoText(parser.nextText());
-
                         } else if (tagName.equalsIgnoreCase("image")) {
-
-                            document.setImageUrl(parser.nextText());
-
-
+                            document.setImageUrl(baseImageUrl + parser.nextText());
                         } else if (tagName.equalsIgnoreCase("quiz")) {
                             document.setQuizURL(parser.nextText());
-                            //
+                        } else if (tagName.equalsIgnoreCase("image_base_url")) {
+                            baseImageUrl = parser.nextText();
+                            if (!baseImageUrl.endsWith("/")) {
+                                baseImageUrl += "/";
+                            }
                         }
                         break;
 
@@ -98,7 +93,6 @@ public class RecorContentPullParserHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return recor_doc;
     }
 
