@@ -54,7 +54,7 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
             // now we handle the different things and download them if necessary
             JSONObject learningContent = webData.getJSONObject("learning_content");
             if (hasNewVersion(learningContent, localData.getJSONObject("learning_content"))) {
-                writeLocalContent(learningContent.getString("url"));
+                downloadLearningContent(learningContent.getString("url"));
 
                 // We save ONLY the things we know are updated just in case someone publishes
                 // a new version of the JSON file and the app isn't updated we don't want to
@@ -120,15 +120,9 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
     }
 
     private void saveCurrentWebAssetData(JSONObject obj) throws IOException {
-        FileWriter output = null;
-        try {
-            output = new FileWriter(webAssetsFile);
-            output.write(obj.toString());
-        } finally {
-            if (output != null) {
-                output.close();
-            }
-        }
+        FileWriter output = new FileWriter(webAssetsFile);
+        output.write(obj.toString());
+        output.close();
     }
 
     /**
@@ -194,58 +188,35 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
     }
 
     /*
-     * Does the version checking and reading and writing of external learning content
-     *
-     * todo - make updates for different file storage locations and types
-     *
+     * Download the learning content file and required files for said learning content.
      */
-    private void writeLocalContent(String contentUrl) {
+    private void downloadLearningContent(String contentUrl) throws IOException {
         //http://developer.android.com/training/basics/data-storage/files.html
         //http://stackoverflow.com/questions/16333145/save-xml-from-url-and-read-it
-        try {
-            URL url = new URL(contentUrl);
-            //create the new connection
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.connect();
+        URL url = new URL(contentUrl);
+        //location on device
+        File learningContentFile = fileManager.getFile(R.string.learning_file_name);
+        downloadFile(url, learningContentFile);
 
-            //location on device
-            File learningContentFile = fileManager.getFile(R.string.learning_file_name);
-            //this will be used to write the downloaded data into the file we created
-            FileOutputStream fileOutput = new FileOutputStream(learningContentFile);
-            //this will be used in reading the data from the internet
-            InputStream inputStream = urlConnection.getInputStream();
-            streamCopy(inputStream, fileOutput);
-            //close the output stream when done
-            fileOutput.close();
-            inputStream.close();
+        // parse the XML file to get the image references
+        FileInputStream in = new FileInputStream(learningContentFile);
+        RecorDocument recorDocument = RecorDocument.parse(in);
+        in.close();
 
-            //*** now that the XML file has been downloaded, go and download all the images referenced in the XML file
-            //todo - much of this code is redundant with previous code, consolidate into one function
+        // get the learning content from external storage, should be updated based on checks done
+        // when the app is opening create the directory.
+        File iwacuImgDir = fileManager.ensureDirectory("Images");
 
-            //first parse the newly downloaded XML
-
-            //get the learning content from external storage, should be updated based on checks done when the app is opening
-            //create the directory
-            File iwacuImgDir = fileManager.ensureDirectory("Images");
-
-            //parse the XML file to get the image references
-            FileInputStream in = new FileInputStream(learningContentFile);
-            RecorDocument recorDocument = RecorDocument.parse(in);
-            in.close();
-
-            //*** iterate through the XML images references and download them
-            for (int i = 0; i < recorDocument.size(); i++) { // each image reference...
-                //get the image reference from the XML
-                RecorContent content = recorDocument.get(i);
-                String imageName = content.getImageUrl();
-                //get a local file ready
-                File imageFile = new File(iwacuImgDir, imageName);
-                //get the images URL ready
-                URL imageUrl = new URL(recorDocument.getBaseImageURL() + imageName);
-                downloadFile(imageUrl, imageFile);
-            } //end for each image reference...
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // iterate through the XML images references and download them
+        for (int i = 0; i < recorDocument.size(); i++) { // each image reference...
+            //get the image reference from the XML
+            RecorContent content = recorDocument.get(i);
+            String imageName = content.getImageUrl();
+            //get a local file ready
+            File imageFile = new File(iwacuImgDir, imageName);
+            //get the images URL ready
+            URL imageUrl = new URL(recorDocument.getBaseImageURL() + imageName);
+            downloadFile(imageUrl, imageFile);
+        } //end for each image reference...
     }
 }
