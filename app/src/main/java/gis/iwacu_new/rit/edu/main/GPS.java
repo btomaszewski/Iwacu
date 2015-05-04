@@ -55,6 +55,9 @@ public class GPS extends Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Creating the bitmap of the marker from the resources
+        Bitmap marker = BitmapFactory.decodeResource(getResources(), R.drawable.marker);
+
         // Creating the mapView and make sure it fills the screen
         Display display = getWindowManager().getDefaultDisplay();
         mapView = new MapView(this, display.getWidth(), display.getHeight(), tilesProvider, marker);
@@ -79,9 +82,6 @@ public class GPS extends Activity
 	}
 
 	void initViews() {
-		// Creating the bitmap of the marker from the resources
-		Bitmap marker = BitmapFactory.decodeResource(getResources(), R.drawable.marker);
-
 		// Creating our database tilesProvider to pass it to our MapView
 		String path = Environment.getExternalStorageDirectory() + "/" + getResources().getString((R.string.Iwacu_Directory)) + getResources().getString((R.string.offline_map_database_name));
 		tilesProvider = new TilesProvider(path);
