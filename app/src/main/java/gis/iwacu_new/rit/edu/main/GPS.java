@@ -170,14 +170,14 @@ public class GPS extends Activity
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	protected void onSaveInstanceState(Bundle savedInstanceState) {
 		if (mapView.getGpsLocation() != null) {
-			outState.putDouble(GPS_LON, mapView.getGpsLocation().getLongitude());
-			outState.putDouble(GPS_LAT, mapView.getGpsLocation().getLatitude());
-			outState.putDouble(GPS_ALT, mapView.getGpsLocation().getAltitude());
-			outState.putFloat(GPS_ACC, mapView.getGpsLocation().getAccuracy());
+			savedInstanceState.putDouble(GPS_LON, mapView.getGpsLocation().getLongitude());
+			savedInstanceState.putDouble(GPS_LAT, mapView.getGpsLocation().getLatitude());
+			savedInstanceState.putDouble(GPS_ALT, mapView.getGpsLocation().getAltitude());
+			savedInstanceState.putFloat(GPS_ACC, mapView.getGpsLocation().getAccuracy());
 		}
-		super.onSaveInstanceState(outState);
+		super.onSaveInstanceState(savedInstanceState);
 	}
 
 	@Override
@@ -185,12 +185,12 @@ public class GPS extends Activity
 		double gpsLon, gpsLat, gpsAlt;
 		float gpsAcc;
 
-		gpsLon = savedInstanceState.getDouble(GPS_LON, 999);
-		gpsLat = savedInstanceState.getDouble(GPS_LAT, 999);
-		gpsAlt = savedInstanceState.getDouble(GPS_ALT, 999);
-		gpsAcc = savedInstanceState.getFloat(GPS_ACC, 999);
+		gpsLon = savedInstanceState.getDouble(GPS_LON, Double.NaN);
+		gpsLat = savedInstanceState.getDouble(GPS_LAT, Double.NaN);
+		gpsAlt = savedInstanceState.getDouble(GPS_ALT, Double.NaN);
+		gpsAcc = savedInstanceState.getFloat(GPS_ACC, Float.NaN);
 
-		if (gpsLon != 999 && gpsLat != 999 && gpsAlt != 999 && gpsAcc != 999) {
+		if (gpsLon != Double.NaN && gpsLat != Double.NaN && gpsAlt != Double.NaN && gpsAcc != Float.NaN) {
 			savedGpsLocation = new Location(LocationManager.GPS_PROVIDER);
 			savedGpsLocation.setLongitude(gpsLon);
 			savedGpsLocation.setLatitude(gpsLat);
