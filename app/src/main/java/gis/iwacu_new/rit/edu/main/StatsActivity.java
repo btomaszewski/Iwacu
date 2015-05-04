@@ -37,20 +37,23 @@ import android.os.Message;
  */
 public class StatsActivity extends Activity implements LocationListener {
 
+    private static final long SLEEP_TIME = 1000;
+
     private LocationManager locationManager;
     private UIUpdateThread thread;
     private final StatsUtilities utils;
     private long startTime;
     private static ArrayList<Location> locationListForDebug;
-    private boolean isDebug = false;
+    private volatile boolean isDebug = false;
 
     /**
      * A runnable for posting to the UI thread. Will update the total time field.
      */
     private final Runnable updateResults = new Runnable() {
         public void run() {
-            if (isDebug)
+            if (isDebug) {
                 generateRandomLocation(); // for debugging and testing
+            }
             if (BigPlanet.isGPSTracking) {
                 startTime = BigPlanet.recordingTime;
                 updateTotalTime();
@@ -72,14 +75,15 @@ public class StatsActivity extends Activity implements LocationListener {
 
         @Override
         public void run() {
-            while (BigPlanet.isGPSTracking && isRunning) {
-                long sleeptime = 1000;
-                runOnUiThread(updateResults);
-                try {
-                    Thread.sleep(sleeptime);
-                } catch (InterruptedException e) {
-                    break;
+            try {
+                while (BigPlanet.isGPSTracking && isRunning) {
+                    runOnUiThread(updateResults);
+                    Thread.sleep(SLEEP_TIME);
                 }
+            } catch (InterruptedException e) {
+                // Not the best way to handle this but for the sake of not causing crashes
+                // if we are interrupted we should probably
+                e.printStackTrace();
             }
         }
 
@@ -108,6 +112,9 @@ public class StatsActivity extends Activity implements LocationListener {
     @Override
     protected void onPause() {
         super.onPause();
+        // Although ending the thread and staring a new one each time the app is paused
+        // and resumed is not the most efficient method it does simplify and lot of threading
+        // issues and for that reason this is probably the better method.
         if (thread != null) {
             thread.finish();
         }

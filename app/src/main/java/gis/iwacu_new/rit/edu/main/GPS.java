@@ -28,24 +28,17 @@ import gis.iwacu_new.rit.edu.main.gps1.TilesProvider;
 
 public class GPS extends Activity
 {
+    // Constant strings used in onSaveInstanceState, onRestoreInstanceState
+    public final static String GPS_LON = "gpsLon";
+    public final static String GPS_LAT = "gpsLAT";
+    public final static String GPS_ALT = "gpsALT";
+    public final static String GPS_ACC = "gpsAcc";
 
-	// Constant strings used in onSaveInstanceState, onRestoreInstanceState
-	private final class Save
-	{
-		public final static String GPS_LON = "gpsLon";
-		public final static String GPS_LAT = "gpsLAT";
-		public final static String GPS_ALT = "gpsALT";
-		public final static String GPS_ACC = "gpsAcc";
-	}
-
-	// Constant strings to save settings in SharedPreferences
-	// Also used for restoring settings
-	private final class Pref
-	{
-		public final static String SEEK_LON = "seek_lon";
-		public final static String SEEK_LAT = "seek_lat";
-		public final static String ZOOM = "zoom";
-	}
+    // Constant strings to save settings in SharedPreferences
+    // Also used for restoring settings
+    public final static String SEEK_LON = "seek_lon";
+    public final static String SEEK_LAT = "seek_lat";
+    public final static String ZOOM = "zoom";
 
 	// Our only view, created in code
 	MapView mapView;
@@ -164,9 +157,9 @@ public class GPS extends Activity
 		double lon, lat;
 		int zoom;
 
-		lon = Double.parseDouble(pref.getString(Pref.SEEK_LON, "0"));
-		lat = Double.parseDouble(pref.getString(Pref.SEEK_LAT, "0"));
-		zoom = pref.getInt(Pref.ZOOM, 0);
+		lon = Double.parseDouble(pref.getString(SEEK_LON, "0"));
+		lat = Double.parseDouble(pref.getString(SEEK_LAT, "0"));
+		zoom = pref.getInt(ZOOM, 0);
 
 		mapView.setSeekLocation(lon, lat);
 		mapView.setZoom(zoom);
@@ -179,9 +172,9 @@ public class GPS extends Activity
 		SharedPreferences.Editor editor = getSharedPreferences("View_Settings", MODE_PRIVATE).edit();
 
 		PointD seekLocation = mapView.getSeekLocation();
-		editor.putString(Pref.SEEK_LON, Double.toString(seekLocation.x));
-		editor.putString(Pref.SEEK_LAT, Double.toString(seekLocation.y));
-		editor.putInt(Pref.ZOOM, mapView.getZoom());
+		editor.putString(SEEK_LON, Double.toString(seekLocation.x));
+		editor.putString(SEEK_LAT, Double.toString(seekLocation.y));
+		editor.putInt(ZOOM, mapView.getZoom());
 
 		editor.commit();
 	}
@@ -191,10 +184,10 @@ public class GPS extends Activity
 	{
 		if (mapView.getGpsLocation() != null)
 		{
-			outState.putDouble(Save.GPS_LON, mapView.getGpsLocation().getLongitude());
-			outState.putDouble(Save.GPS_LAT, mapView.getGpsLocation().getLatitude());
-			outState.putDouble(Save.GPS_ALT, mapView.getGpsLocation().getAltitude());
-			outState.putFloat(Save.GPS_ACC, mapView.getGpsLocation().getAccuracy());
+			outState.putDouble(GPS_LON, mapView.getGpsLocation().getLongitude());
+			outState.putDouble(GPS_LAT, mapView.getGpsLocation().getLatitude());
+			outState.putDouble(GPS_ALT, mapView.getGpsLocation().getAltitude());
+			outState.putFloat(GPS_ACC, mapView.getGpsLocation().getAccuracy());
 		}
 
 		super.onSaveInstanceState(outState);
@@ -206,10 +199,10 @@ public class GPS extends Activity
 		double gpsLon, gpsLat, gpsAlt;
 		float gpsAcc;
 
-		gpsLon = savedInstanceState.getDouble(Save.GPS_LON, 999);
-		gpsLat = savedInstanceState.getDouble(Save.GPS_LAT, 999);
-		gpsAlt = savedInstanceState.getDouble(Save.GPS_ALT, 999);
-		gpsAcc = savedInstanceState.getFloat(Save.GPS_ACC, 999);
+		gpsLon = savedInstanceState.getDouble(GPS_LON, 999);
+		gpsLat = savedInstanceState.getDouble(GPS_LAT, 999);
+		gpsAlt = savedInstanceState.getDouble(GPS_ALT, 999);
+		gpsAcc = savedInstanceState.getFloat(GPS_ACC, 999);
 
 		if (gpsLon != 999 && gpsLat != 999 && gpsAlt != 999 && gpsAcc != 999)
 		{
