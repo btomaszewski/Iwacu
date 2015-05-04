@@ -41,19 +41,28 @@ public class GPS extends Activity
     public final static String ZOOM = "zoom";
 
 	// Our only view, created in code
-	MapView mapView;
+	private MapView mapView;
 
 	// Provides us with Tiles objects, passed to MapView
-	TilesProvider tilesProvider;
+	private TilesProvider tilesProvider;
 
 	// Updates marker location in MapView
-	MapViewLocationListener locationListener;
+	private MapViewLocationListener locationListener;
 
-	Location savedGpsLocation;
+	private Location savedGpsLocation;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Creating the mapView and make sure it fills the screen
+        Display display = getWindowManager().getDefaultDisplay();
+        mapView = new MapView(this, display.getWidth(), display.getHeight(), tilesProvider, marker);
+        setContentView(mapView);
+    }
 
 	@Override
-	protected void onResume()
-	{
+	protected void onResume() {
 		// Create MapView
 		initViews();
 
@@ -65,25 +74,17 @@ public class GPS extends Activity
 		LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
-		// Set our MapView as the main view for the activity
-		setContentView(mapView);
-
 		// Never ever forget this :)
 		super.onResume();
 	}
 
-	void initViews()
-	{
+	void initViews() {
 		// Creating the bitmap of the marker from the resources
 		Bitmap marker = BitmapFactory.decodeResource(getResources(), R.drawable.marker);
 
 		// Creating our database tilesProvider to pass it to our MapView
 		String path = Environment.getExternalStorageDirectory() + "/" + getResources().getString((R.string.Iwacu_Directory)) + getResources().getString((R.string.offline_map_database_name));
 		tilesProvider = new TilesProvider(path);
-
-		// Creating the mapView and make sure it fills the screen
-		Display display = getWindowManager().getDefaultDisplay();
-		mapView = new MapView(this, display.getWidth(), display.getHeight(), tilesProvider, marker);
 
 		// If a location was saved while pausing the app then use it.
 		if (savedGpsLocation != null) mapView.setGpsLocation(savedGpsLocation);
@@ -93,8 +94,7 @@ public class GPS extends Activity
 	}
 
 	@Override
-	protected void onPause()
-	{
+	protected void onPause() {
 		// Save settings before leaving
 		saveMapViewSettings();
 
@@ -110,36 +110,28 @@ public class GPS extends Activity
 		// Clears the tiles held in the tilesProvider
 		tilesProvider.clear();
 
-		// Release mapView pointer
-		mapView = null;
-
 		super.onPause();
 	}
 
 	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event)
-	{
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		// Zooming
-		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_Z)
-		{
+		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_Z) {
 			mapView.zoomIn();
 			return true;
 		}
 		// Zooming
-		else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_X)
-		{
+		else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_X) {
 			mapView.zoomOut();
 			return true;
 		}
 		// Enable auto follow
-		if (keyCode == KeyEvent.KEYCODE_H || keyCode == KeyEvent.KEYCODE_FOCUS)
-		{
+		if (keyCode == KeyEvent.KEYCODE_H || keyCode == KeyEvent.KEYCODE_FOCUS) {
 			mapView.followMarker();
 			return true;
 		}
 		// Simulate being at some location, for testing only
-		else if (keyCode == KeyEvent.KEYCODE_M || keyCode == KeyEvent.KEYCODE_MENU)
-		{
+		else if (keyCode == KeyEvent.KEYCODE_M || keyCode == KeyEvent.KEYCODE_MENU) {
 			mapView.setGpsLocation(46.142578, -20.841015, 0, 182);
 			mapView.invalidate();
 
@@ -150,8 +142,7 @@ public class GPS extends Activity
 	}
 
 	// Called manually to restore settings from SharedPreferences
-	void restoreMapViewSettings()
-	{
+	void restoreMapViewSettings() {
 		SharedPreferences pref = getSharedPreferences("View_Settings", MODE_PRIVATE);
 
 		double lon, lat;
@@ -167,8 +158,7 @@ public class GPS extends Activity
 	}
 
 	// Called manually to save settings in SharedPreferences
-	void saveMapViewSettings()
-	{
+	void saveMapViewSettings() {
 		SharedPreferences.Editor editor = getSharedPreferences("View_Settings", MODE_PRIVATE).edit();
 
 		PointD seekLocation = mapView.getSeekLocation();
@@ -180,22 +170,18 @@ public class GPS extends Activity
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState)
-	{
-		if (mapView.getGpsLocation() != null)
-		{
+	protected void onSaveInstanceState(Bundle outState) {
+		if (mapView.getGpsLocation() != null) {
 			outState.putDouble(GPS_LON, mapView.getGpsLocation().getLongitude());
 			outState.putDouble(GPS_LAT, mapView.getGpsLocation().getLatitude());
 			outState.putDouble(GPS_ALT, mapView.getGpsLocation().getAltitude());
 			outState.putFloat(GPS_ACC, mapView.getGpsLocation().getAccuracy());
 		}
-
 		super.onSaveInstanceState(outState);
 	}
 
 	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState)
-	{
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		double gpsLon, gpsLat, gpsAlt;
 		float gpsAcc;
 
@@ -204,8 +190,7 @@ public class GPS extends Activity
 		gpsAlt = savedInstanceState.getDouble(GPS_ALT, 999);
 		gpsAcc = savedInstanceState.getFloat(GPS_ACC, 999);
 
-		if (gpsLon != 999 && gpsLat != 999 && gpsAlt != 999 && gpsAcc != 999)
-		{
+		if (gpsLon != 999 && gpsLat != 999 && gpsAlt != 999 && gpsAcc != 999) {
 			savedGpsLocation = new Location(LocationManager.GPS_PROVIDER);
 			savedGpsLocation.setLongitude(gpsLon);
 			savedGpsLocation.setLatitude(gpsLat);
