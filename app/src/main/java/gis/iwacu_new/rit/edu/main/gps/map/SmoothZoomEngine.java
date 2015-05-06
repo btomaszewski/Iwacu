@@ -4,7 +4,7 @@ import java.util.LinkedList;
 
 public class SmoothZoomEngine {
 
-	public static SmoothZoomEngine sze;
+	public static SmoothZoomEngine zoomEngine;
 	
 	private LinkedList<Integer> scaleQueue = new LinkedList<Integer>();
 
@@ -17,10 +17,10 @@ public class SmoothZoomEngine {
 	public static boolean stop = false;
 
 	public static SmoothZoomEngine getInstance() {
-		if (sze == null) {
-			sze = new SmoothZoomEngine();
+		if (zoomEngine == null) {
+			zoomEngine = new SmoothZoomEngine();
 		}
-		return sze;
+		return zoomEngine;
 	}
 
 	public void setUpdateScreenCommand(final AbstractCommand updateScreen) {
@@ -38,7 +38,6 @@ public class SmoothZoomEngine {
 	}
 
 	private SmoothZoomEngine() {
-//		System.out.println("create queue");
 		createQueue();
 	}
 	
@@ -64,18 +63,18 @@ public class SmoothZoomEngine {
 						if ((scaleDirection == -1 && z < 17) || (scaleDirection == 1 && z > -2)) {
 							if (!(endScaleFactor > 8000 || endScaleFactor < 125)) {
 //								System.out.println("smooth scaling");
-								synchronized (sze) {
+								synchronized (zoomEngine) {
 									synchronized (scaleFactor) {
 										do {
 											try {
 //												Thread.sleep(5);
 //												scaleFactor = scaleFactor + (scaleDirection) * 25;
 												scaleFactor = (float) endScaleFactor;
-												updateScreen.execute(new Float(scaleFactor / 1000));
+												updateScreen.execute(scaleFactor / 1000);
 											} catch (Exception e) {
 												e.printStackTrace();
 											}
-										} while (!(scaleFactor == (endScaleFactor)));
+										} while (scaleFactor != endScaleFactor);
 									}
 								}
 							}
@@ -113,9 +112,8 @@ public class SmoothZoomEngine {
 	}
 
 	public void addToScaleQ(int direction) {
-		synchronized (scaleQueue) {
-//			System.out.println("add to scale " + direction);
-			scaleQueue.addLast(direction);
+		synchronized(scaleQueue) {
+			scaleQueue.addLast( direction );
 		}
 	}
 

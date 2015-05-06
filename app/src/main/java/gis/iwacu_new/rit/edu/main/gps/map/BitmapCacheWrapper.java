@@ -1,7 +1,5 @@
 package gis.iwacu_new.rit.edu.main.gps.map;
 
-import gis.iwacu_new.rit.edu.main.BigPlanet;
-
 import android.graphics.Bitmap;
 
 

@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import gis.iwacu_new.rit.edu.main.R;
-import gis.iwacu_new.rit.edu.main.BigPlanet;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -74,17 +73,12 @@ public class MarkerManager {
 	
 	public void addMarker(Place place, int zoom, int trackType, int imageType){
 		/* trackType:
-		 * 0 -> DrawMarkerForSearch, 
+		 * 0 -> DrawMarkerForSearch,
 		 * 1 -> DrawMarkerOrTrack, 
 		 * 2 -> DrawTrackFromDB
 		 */
-		boolean isGPS;
-		if (trackType == DrawMarkerForSearch) {
-			isGPS = false;
-		} else {
-			isGPS = true;
-		}
-		
+		boolean isGPS = trackType != DrawMarkerForSearch;
+
 		if(trackType == DrawMarkerForSearch){
 			Marker marker = new Marker(place, images.get(imageType), isGPS);
 			updateParams(marker, zoom);
@@ -117,7 +111,7 @@ public class MarkerManager {
 			Iterator<Marker> it = markers.iterator();
 			while(it.hasNext()){
 				Marker m = it.next();
-				if(m.isGPS){
+				if(m.isGps()){
 					it.remove();
 				}
 			}
@@ -221,57 +215,4 @@ public class MarkerManager {
 	private Bitmap decodeBitmap(int resourceId){
 		return BitmapFactory.decodeResource(resources, resourceId);
 	}
-	
-	public static class MarkerImage{
-		
-		private Bitmap image;
-		private int offsetX;
-		private int offsetY;
-		
-		public MarkerImage(Bitmap image, int offsetX, int offsetY){
-			this.image = image;
-			this.offsetX = offsetX;
-			this.offsetY = offsetY;
-		}
-		
-		public Bitmap getImage(){
-			return this.image;
-		}
-		
-		public int getOffsetX(){
-			return this.offsetX;
-		}
-		
-		public int getOffsetY(){
-			return this.offsetY;
-		}
-	}
-	
-	public class Marker {
-		
-		public Place place;
-		public RawTile tile;
-		public Point offset;
-		private boolean isGPS;
-		private MarkerImage markerImage;
-		
-		public Marker(Place place, MarkerImage markerImage, boolean isGPS){
-			this.place = place;	
-			this.isGPS = isGPS;
-			this.markerImage = markerImage;
-		}
-		
-		public Point getOffset(){
-			return this.offset;
-		}
-		
-		public MarkerImage getMarkerImage(){
-			return this.markerImage;
-		}
-		
-		public void setMarkerImage(MarkerImage markerImage){
-			this.markerImage = markerImage;
-		}
-	}
-	
 }

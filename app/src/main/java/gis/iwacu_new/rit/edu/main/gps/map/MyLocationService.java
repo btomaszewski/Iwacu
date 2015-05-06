@@ -1,4 +1,4 @@
-package gis.iwacu_new.rit.edu.main;
+package gis.iwacu_new.rit.edu.main.gps.map;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -21,6 +21,8 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
+
+import gis.iwacu_new.rit.edu.main.R;
 
 public class MyLocationService extends Service implements LocationListener, SensorEventListener {
 	

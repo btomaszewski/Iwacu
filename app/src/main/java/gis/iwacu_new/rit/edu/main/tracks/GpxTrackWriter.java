@@ -2,7 +2,7 @@ package gis.iwacu_new.rit.edu.main.tracks;
 
 import java.util.ArrayList;
 
-import gis.iwacu_new.rit.edu.main.BigPlanet;
+import gis.iwacu_new.rit.edu.main.gps.map.BigPlanet;
 import gis.iwacu_new.rit.edu.main.gps.map.SQLLocalStorage;
 
 import android.database.Cursor;

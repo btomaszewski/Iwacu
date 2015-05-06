@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gis.iwacu_new.rit.edu.main.R;
-import gis.iwacu_new.rit.edu.main.BigPlanet;
 import gis.iwacu_new.rit.edu.main.gps.map.MarkerManager.Marker;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +36,12 @@ public class MapControl extends RelativeLayout {
 
 	public static final int SELECT_MODE = 1;
 
+    private final static int BCG_CELL_SIZE = 16;
+
+    public static Bitmap CELL_BACKGROUND = BitmapUtils.drawBackground(BCG_CELL_SIZE, TILE_SIZE, TILE_SIZE);
+
+    public static Bitmap EMPTY_BACKGROUND = BitmapUtils.drawEmptyBackground(TILE_SIZE);
+
 	private int mapMode = ZOOM_MODE;
 
 	private Panel main;
@@ -56,15 +61,9 @@ public class MapControl extends RelativeLayout {
 
 	private Bitmap cb = null;
 
-	private final static int BCG_CELL_SIZE = 16;
-
 	private OnMapLongClickListener onMapLongClickListener;
 
 	private MarkerManager markerManager;
-
-	public static Bitmap CELL_BACKGROUND = BitmapUtils.drawBackground(BCG_CELL_SIZE, TILE_SIZE, TILE_SIZE);
-
-	public static Bitmap EMPTY_BACKGROUND = BitmapUtils.drawEmptyBackground(TILE_SIZE);
 
 	private Point scalePoint = new Point();
 

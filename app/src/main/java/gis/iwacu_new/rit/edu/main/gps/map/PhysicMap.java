@@ -53,7 +53,7 @@ public class PhysicMap {
 	
 	private int getCellSize(int length) {
 		int i = 0;
-		while (++i*TILE_SIZE < length) {}
+		while(++i*TILE_SIZE < length) {}
 		return ++i;
 	}
 

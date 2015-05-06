@@ -13,11 +13,14 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package gis.iwacu_new.rit.edu.main;
+package gis.iwacu_new.rit.edu.main.gps.map;
 
 import java.util.ArrayList;
 import java.util.Random;
 
+import gis.iwacu_new.rit.edu.main.R;
+import gis.iwacu_new.rit.edu.main.gps.map.BigPlanet;
+import gis.iwacu_new.rit.edu.main.gps.map.BigPlanetTracks;
 import gis.iwacu_new.rit.edu.main.gps.map.MarkerManager;
 import gis.iwacu_new.rit.edu.main.gps.map.StatsUtilities;
 import gis.iwacu_new.rit.edu.main.tracks.TrackAnalyzer;

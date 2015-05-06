@@ -3,7 +3,7 @@ package gis.iwacu_new.rit.edu.main.tracks;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import gis.iwacu_new.rit.edu.main.BigPlanet;
+import gis.iwacu_new.rit.edu.main.gps.map.BigPlanet;
 
 import android.location.Location;
 import android.util.Log;

@@ -1,4 +1,4 @@
-package gis.iwacu_new.rit.edu.main;
+package gis.iwacu_new.rit.edu.main.gps.map;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -9,27 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import gis.iwacu_new.rit.edu.main.gps.map.AddBookmarkDialog;
-import gis.iwacu_new.rit.edu.main.gps.map.BigPlanetApp;
-import gis.iwacu_new.rit.edu.main.gps.map.DAO;
-import gis.iwacu_new.rit.edu.main.gps.map.GeoBookmark;
-import gis.iwacu_new.rit.edu.main.gps.map.LocalStorageWrapper;
-import gis.iwacu_new.rit.edu.main.gps.map.MapControl;
-import gis.iwacu_new.rit.edu.main.gps.map.MapSaverUI;
-import gis.iwacu_new.rit.edu.main.gps.map.MapStrategyFactory;
-import gis.iwacu_new.rit.edu.main.gps.map.MarkerManager;
-import gis.iwacu_new.rit.edu.main.gps.map.OnDialogClickListener;
-import gis.iwacu_new.rit.edu.main.gps.map.OnMapLongClickListener;
-import gis.iwacu_new.rit.edu.main.gps.map.PhysicMap;
-import gis.iwacu_new.rit.edu.main.gps.map.Place;
-import gis.iwacu_new.rit.edu.main.gps.map.Preferences;
-import gis.iwacu_new.rit.edu.main.gps.map.RawTile;
-import gis.iwacu_new.rit.edu.main.gps.map.SHA1Hash;
-import gis.iwacu_new.rit.edu.main.gps.map.SQLLocalStorage;
-import gis.iwacu_new.rit.edu.main.gps.map.SmoothZoomEngine;
-import gis.iwacu_new.rit.edu.main.gps.map.TileLoader;
-import gis.iwacu_new.rit.edu.main.gps.map.Utils;
-import gis.iwacu_new.rit.edu.main.gps.map.MarkerManager.Marker;
+import gis.iwacu_new.rit.edu.main.AllGeoBookmarks;
+import gis.iwacu_new.rit.edu.main.R;
 import gis.iwacu_new.rit.edu.main.tracks.MyTimeUtils;
 import gis.iwacu_new.rit.edu.main.tracks.TrackDBAdapter;
 import gis.iwacu_new.rit.edu.main.tracks.TrackStoringThread;
@@ -92,6 +73,13 @@ public class BigPlanet extends Activity {
 	private static final String BOOKMARK_DATA = "bookmark";
 	private static int SEARCH_ZOOM = 2;
 
+    public static final int MethodStartGPSLocationListener = 0;
+    public static final int MethodGoToMyLocation = 1;
+    public static final int MethodTrackMyLocation = 2;
+    public static final int MethodAddMarker = 3;
+    public static final int MethodSetActivityTitle = 4;
+    public static final int MethodUpdateScreen = 5;
+
 	private Toast textMessage;
 	public String identifier = null;
 	public static float density;
@@ -121,8 +109,6 @@ public class BigPlanet extends Activity {
 	public static double autoDisplayDB_Lon = 0;
 	public static boolean clearYellowPersonMarker = false;
 	
-	private boolean SDCARD_AVAILABLE = true;
-	
 	private MySearchIntentReceiver searchIntentReceiver;
 	private MyUpdateScreenIntentReceiver updateScreenIntentReceiver;
 	public static String SearchAction = "tyt.android.bigplanettracks.INTENTS.GOTO";
@@ -133,12 +119,22 @@ public class BigPlanet extends Activity {
 	private static ImageView scaleImageView;
 	private Point myGPSOffset;
 	private Point previousGPSOffset = new Point();;
+    private ImageView ivRecordTrack;
 		
 	public static TrackDBAdapter DBAdapter;
 	private ProgressDialog myGPSDialog = null;
 	private Handler mainThreadHandler; // used by TrackStoringThread
 	protected static Handler locationHandler;
 	protected static Handler titleHandler;
+
+    protected static MyLocationService gpsLocationListener;
+    protected static MyLocationService networkLocationListener;
+    protected final static long minTime = 2000; // ms
+    protected final static float minDistance = 10; // m
+
+    private static Bitmap zoomBitmap = null;
+    private static Bitmap scaledBitmap = null;
+    private static int scaledBitmapZoomLevel = -9;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -192,7 +188,6 @@ public class BigPlanet extends Activity {
 
 		String status = Environment.getExternalStorageState();
 		if (!status.equals(Environment.MEDIA_MOUNTED)) {
-			SDCARD_AVAILABLE = false;
 			new AlertDialog.Builder(this).setMessage(R.string.sdcard_unavailable)
 					.setCancelable(false).setNeutralButton(R.string.OK_LABEL,
 							new DialogInterface.OnClickListener() {
@@ -202,7 +197,6 @@ public class BigPlanet extends Activity {
 								}
 							}).show();
 		} else {
-			SDCARD_AVAILABLE = true;
 			if (new File(SQLLocalStorage.TRACK_PATH+"/sdcard.xml").exists()) {
 				SQLLocalStorage.SD_PATH = Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator;
 				SQLLocalStorage.updateSDPaths();
@@ -225,12 +219,11 @@ public class BigPlanet extends Activity {
 			File trackImportFolder = new File(SQLLocalStorage.TRACK_IMPORT_PATH);
 			if (!trackImportFolder.exists())
 				trackImportFolder.mkdirs();
-			trackImportFolder = null;
-			
+
 			File mapsDBFolder = new File(SQLLocalStorage.MAP_PATH);
-			if (!mapsDBFolder.exists())
-				mapsDBFolder.mkdirs();
-			mapsDBFolder = null;
+			if (!mapsDBFolder.exists()) {
+                mapsDBFolder.mkdirs();
+            }
 
 			String proxyHost = Proxy.getDefaultHost();
 			int proxyPort = Proxy.getDefaultPort();
@@ -339,8 +332,6 @@ public class BigPlanet extends Activity {
 		setActivityTitle((Activity) context);
 		mapControl.invalidate();
 	}
-
-	private ImageView ivRecordTrack;
 	
 	private RelativeLayout getTrackRelativeLayout() {
 		final RelativeLayout relativeLayout = new RelativeLayout(this);
@@ -484,7 +475,7 @@ public class BigPlanet extends Activity {
 
 	public class MySearchIntentReceiver extends BroadcastReceiver {
 		/**
-		 * @see adroid.content.BroadcastReceiver#onReceive(android.content.Context,
+		 * @see android.content.BroadcastReceiver#onReceive(android.content.Context,
 		 *      android.content.Intent)
 		 */
 		@Override
@@ -510,13 +501,6 @@ public class BigPlanet extends Activity {
 			d.saveGeoBookmark(newGeoBookmark);
 		}
 	}
-	
-	public static final int MethodStartGPSLocationListener = 0;
-	public static final int MethodGoToMyLocation = 1;
-	public static final int MethodTrackMyLocation = 2;
-	public static final int MethodAddMarker = 3;
-	public static final int MethodSetActivityTitle = 4;
-	public static final int MethodUpdateScreen = 5;
 	
 	public class MyUpdateScreenIntentReceiver extends BroadcastReceiver {
 		@Override
@@ -584,31 +568,27 @@ public class BigPlanet extends Activity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		if (SDCARD_AVAILABLE) {
-			if (isGPSTracking){
-				ivRecordTrack.setImageResource(R.drawable.btn_record_stop);
-			} else{
-				ivRecordTrack.setImageResource(R.drawable.btn_record_start);
-			}
-			if (isFollowMode){
-				mAutoFollowRelativeLayout.setVisibility(View.INVISIBLE);
-			} else{
-				mAutoFollowRelativeLayout.setVisibility(View.VISIBLE);
-			}
-		}
+        if (isGPSTracking){
+            ivRecordTrack.setImageResource(R.drawable.btn_record_stop);
+        } else{
+            ivRecordTrack.setImageResource(R.drawable.btn_record_start);
+        }
+        if (isFollowMode){
+            mAutoFollowRelativeLayout.setVisibility(View.INVISIBLE);
+        } else{
+            mAutoFollowRelativeLayout.setVisibility(View.VISIBLE);
+        }
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (SDCARD_AVAILABLE) {
-			startGPSLocationListener();
-			if (isFirstEntry) {
-				isFirstEntry = false;
-				isFollowMode = false;
-				followMyLocation();
-			}
-		}
+        startGPSLocationListener();
+        if (isFirstEntry) {
+            isFirstEntry = false;
+            isFollowMode = false;
+            followMyLocation();
+        }
 	}
 	
 	@Override
@@ -622,7 +602,7 @@ public class BigPlanet extends Activity {
 		super.onDestroy();
 		DBAdapter.close();
 		DBAdapter = null;
-		SmoothZoomEngine.sze = null; // release the variable
+		SmoothZoomEngine.zoomEngine = null; // release the variable
 		SmoothZoomEngine.stop = true; // stop the thread
 		TileLoader.stop = true; // stop the thread
 		mAutoFollowRelativeLayout = null;
@@ -732,10 +712,9 @@ public class BigPlanet extends Activity {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		hideMessage();
 		switch (item.getItemId()) {
 		case 11:
-			showSearch();
+            onSearchRequested();
 			break;
 		case 21:
 			switchToBookmarkMode();
@@ -750,15 +729,11 @@ public class BigPlanet extends Activity {
 			selectNetworkMode();
 			break;
 		case 42:
-			if (BigPlanetApp.isDemo) {
-				if (PhysicMap.getZoomLevel() <= 6) {
-					showTrialDialog(R.string.try_demo_title, R.string.try_demo_message);
-				} else {
-					showMapSaver();
-				}
-			} else {
-				showMapSaver();
-			}
+            if (BigPlanetApp.isDemo && PhysicMap.getZoomLevel() <= 6) {
+                showTrialDialog(R.string.try_demo_title, R.string.try_demo_message);
+            } else {
+                showMapSaver();
+            }
 			break;
 		case 43:
 			selectMapSource();
@@ -767,7 +742,7 @@ public class BigPlanet extends Activity {
 			selectGPSOffset();
 			break;
 		case 45:
-			selectMapMagnification();
+            new MapMagnificationDialog(this).show();
 			break;
 		case 49:
 			showAbout();
@@ -779,17 +754,20 @@ public class BigPlanet extends Activity {
 				selectSQLiteDBFile();
 			}
 			break;
-		case 61: //import and browse tracks from SD card
+		case 61:
+		    //import and browse tracks from SD card
 			importAndBrowseTracks();
 			break;
-		case 62: //clear track
+		case 62:
 			clearSaveTracksG();
 			break;
-		case 63: //clear track
+		case 63:
 			clearMarkerDB();
 			break;
-		case 64: //clear all tracks on the map
-			clearMap();
+		case 64:
+		    //clear all tracks on the map
+            clearSaveTracksG();
+            clearMarkerDB();
 			break;
 
 		}
@@ -797,10 +775,7 @@ public class BigPlanet extends Activity {
 	}
 
 	private boolean checkMarkers(List<Marker> list) {
-		if(list.size()>0){
-			return true;
-		}
-		return false;
+        return list.size() > 0;
 	}
 
 	/**
@@ -820,7 +795,6 @@ public class BigPlanet extends Activity {
 
 				@Override
 				public void onMapLongClick(int x, int y) {
-					hideMessage();
 					final GeoBookmark newGeoBookmark = new GeoBookmark();
 					newGeoBookmark.setOffsetX(mapControl.getPhysicalMap().getGlobalOffset().x);
 					newGeoBookmark.setOffsetY(mapControl.getPhysicalMap().getGlobalOffset().y);
@@ -900,11 +874,8 @@ public class BigPlanet extends Activity {
 			networkLocationListener.registerSensor(this);
 			// LocationManager.NETWORK_PROVIDER = "network"
 			provider = LocationManager.NETWORK_PROVIDER;
-			try {
-				locationManager.requestLocationUpdates(provider, minTime, minDistance, networkLocationListener);
-				Log.i("Location", provider +" requestLocationUpdates() "+ minTime +" "+ minDistance);
-			} catch (RuntimeException e) {
-			}
+            locationManager.requestLocationUpdates(provider, minTime, minDistance, networkLocationListener);
+            Log.i("Location", provider +" requestLocationUpdates() "+ minTime +" "+ minDistance);
 		}
 	}
 	
@@ -930,11 +901,6 @@ public class BigPlanet extends Activity {
 			}
 		}.start();
 	}
-	
-	protected static MyLocationService gpsLocationListener;
-	protected static MyLocationService networkLocationListener;
-	protected final static long minTime = 2000; // ms
-	protected final static float minDistance = 10; // m
 	
 	private void followMyLocation() {
 		if (!isFollowMode) {
@@ -1039,25 +1005,18 @@ public class BigPlanet extends Activity {
 		mapControl.invalidate();
 	}
 	
-	private void clearMap() {
-		clearSaveTracksG();
-		clearMarkerDB();
-	}
-	
 	private void showTrialDialog(int title, int message) {
 		final Dialog paramsDialog = new Dialog(this);
-		final View v = View.inflate(this, R.layout.demodialog, null);
+		final View v = View.inflate(this, R.layout.demo_dialog, null);
 		final TextView messageValue = (TextView) v.findViewById(R.id.message);
 		messageValue.setText(message);
 		final Button okBtn = (Button) v.findViewById(R.id.okBtn);
 		okBtn.setEnabled(false);
 		okBtn.setClickable(false);
 		okBtn.setOnClickListener(new OnClickListener() {
-
 			public void onClick(View arg0) {
 				paramsDialog.dismiss();
 			}
-
 		});
 		paramsDialog.setTitle(title);
 		paramsDialog.setCanceledOnTouchOutside(false);
@@ -1102,10 +1061,6 @@ public class BigPlanet extends Activity {
 		}.start();
 	}
 
-	private void showSearch() {
-		onSearchRequested();
-	}
-
 	private void showAbout() {
 		final String url = getString(R.string.ABOUT_URL);
 		String about = getString(R.string.ABOUT_MESSAGE).replace("{url}", url);
@@ -1137,23 +1092,17 @@ public class BigPlanet extends Activity {
 				new AlertDialog.Builder(this)
 				.setTitle(getString(R.string.ABOUT_TITLE)+" "+versionName)
 				.setView(scrollPanel).setIcon(R.drawable.globe)
-				.setPositiveButton(
-						R.string.OK_LABEL,
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int whichButton) {
-							}
-						})
+				.setPositiveButton(R.string.OK_LABEL, null)
 				.setNeutralButton(
-						R.string.website,
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int whichButton) {
-								Intent i = new Intent(Intent.ACTION_VIEW);
-								i.setData(Uri.parse(url));
-								startActivity(i);
-							}
-						})
+                    R.string.website,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog,
+                                int whichButton) {
+                            Intent i = new Intent(Intent.ACTION_VIEW);
+                            i.setData(Uri.parse(url));
+                            startActivity(i);
+                        }
+                    })
 				.show();
 			}
 		} catch (NumberFormatException e) {
@@ -1169,19 +1118,7 @@ public class BigPlanet extends Activity {
 	private void switchToBookmarkMode() {
 		if (mapControl.getMapMode() != MapControl.SELECT_MODE) {
 			mapControl.setMapMode(MapControl.SELECT_MODE);
-			showMessage();
-		}
-	}
-
-	private void showMessage() {
-		textMessage = Toast.makeText(this, R.string.SELECT_OBJECT_MESSAGE,
-				Toast.LENGTH_LONG);
-		textMessage.show();
-	}
-
-	private void hideMessage() {
-		if (textMessage != null) {
-			textMessage.cancel();
+            Toast.makeText(this, R.string.SELECT_OBJECT_MESSAGE, Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -1214,147 +1151,48 @@ public class BigPlanet extends Activity {
 	 * Creates a dialog to select the mode (offline, online)
 	 */
 	private void selectNetworkMode() {
-		final Dialog networkModeDialog;
-		networkModeDialog = new Dialog(this);
-		networkModeDialog.setCanceledOnTouchOutside(true);
-		networkModeDialog.setCancelable(true);
-		networkModeDialog.setTitle(R.string.NETWORK_MODE_MENU);
-		
-		final LinearLayout mainPanel = new LinearLayout(this);
-		mainPanel.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-				LayoutParams.FILL_PARENT));
-		mainPanel.setOrientation(LinearLayout.VERTICAL);
+		final Dialog dialog = new Dialog(this);
+		dialog.setCanceledOnTouchOutside(true);
+		dialog.setCancelable(true);
+		dialog.setTitle(R.string.NETWORK_MODE_MENU);
+        dialog.setContentView(R.layout.select_network_mode);
 
-		TextView mTextView = new TextView(this);
-		mTextView.setText(R.string.SELECT_NETWORK_MODE_LABEL);
-		mainPanel.addView(mTextView);
-		
-		RadioGroup modesRadioGroup = new RadioGroup(this);
-
-		LinearLayout.LayoutParams layoutParams = new RadioGroup.LayoutParams(
-				RadioGroup.LayoutParams.WRAP_CONTENT,
-				RadioGroup.LayoutParams.WRAP_CONTENT);
-
-		modesRadioGroup.addView(buildRadioButton(getResources().getString(
-				(R.string.OFFLINE_MODE_LABEL)), 0), 0, layoutParams);
-
-		modesRadioGroup.addView(buildRadioButton(getResources().getString(
-				R.string.ONLINE_MODE_LABEL), 1), 0, layoutParams);
-
-		boolean useNet = Preferences.getUseNet();
-		int checked = 0;
-		if (useNet) {
-			checked = 1;
-		}
-		modesRadioGroup.check(checked);
-
-		modesRadioGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-					public void onCheckedChanged(RadioGroup group, int checkedId) {
-						boolean useNet = checkedId == 1;
-						mapControl.getPhysicalMap().getTileResolver()
-								.setUseNet(useNet);
-						Preferences.putUseNet(useNet);
-						networkModeDialog.dismiss();
-					}
-				});
-
-		mainPanel.addView(modesRadioGroup);
-		networkModeDialog.setContentView(mainPanel);
-		networkModeDialog.show();
-	}
-
-	/**
-	 * Creates a dialog to select the map magnification
-	 */
-	private void selectMapMagnification() {
-		final Dialog mapMagnificationDialog;
-		mapMagnificationDialog = new Dialog(this);
-		mapMagnificationDialog.setCanceledOnTouchOutside(true);
-		mapMagnificationDialog.setCancelable(true);
-		mapMagnificationDialog.setTitle(R.string.MAP_MAGNIFICATION_MENU);
-		
-		final LinearLayout mainPanel = new LinearLayout(this);
-		mainPanel.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-				LayoutParams.FILL_PARENT));
-		mainPanel.setOrientation(LinearLayout.VERTICAL);
-
-		RadioGroup levelsRadioGroup = new RadioGroup(this);
-
-		LinearLayout.LayoutParams layoutParams = new RadioGroup.LayoutParams(
-				RadioGroup.LayoutParams.WRAP_CONTENT,
-				RadioGroup.LayoutParams.WRAP_CONTENT);
-
-		final CharSequence[] arrayMapMagnification = getResources().getTextArray(R.array.MapMagnification);
-		for (int i = arrayMapMagnification.length-1; i >= 0; i--) {
-			levelsRadioGroup.addView(buildRadioButton(arrayMapMagnification[i].toString(), i), 0, layoutParams);
-		}
-
-		int mapMagnificationIndex = Preferences.getMapMagnificationIndex();
-		levelsRadioGroup.check(mapMagnificationIndex);
-
-		levelsRadioGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-					public void onCheckedChanged(RadioGroup group, int checkedId) {
-						int mapMagnificationIndex = checkedId;
-						Preferences.putMapMagnificationIndex(mapMagnificationIndex);
-						BigPlanet.mapMagnification = Float.parseFloat(arrayMapMagnification[mapMagnificationIndex].toString());
-						isMapMagnificationChanged = true;
-						mapControl.invalidate();
-						setActivityTitle(BigPlanet.this);
-						isMapMagnificationChanged = false;
-						mapMagnificationDialog.dismiss();
-					}
-				});
-
-		mainPanel.addView(levelsRadioGroup);
-		mapMagnificationDialog.setContentView(mainPanel);
-		mapMagnificationDialog.show();
+        RadioGroup radioGroup = (RadioGroup)dialog.findViewById(R.id.radioGroup);
+        boolean useNet = Preferences.getUseNet();
+        int checked = useNet ? 1 : 0;
+        radioGroup.check(checked);
+		radioGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                boolean useNet = checkedId == 1;
+                mapControl.getPhysicalMap().getTileResolver()
+                        .setUseNet(useNet);
+                Preferences.putUseNet(useNet);
+                dialog.dismiss();
+            }
+        });
+		dialog.show();
 	}
 
 	/**
 	 * Creates a dialog to select the map source
 	 */
 	private void selectMapSource() {
-		final Dialog mapSourceDialog;
-		mapSourceDialog = new Dialog(this);
-		mapSourceDialog.setCanceledOnTouchOutside(true);
-		mapSourceDialog.setCancelable(true);
-		mapSourceDialog.setTitle(R.string.SELECT_MAP_SOURCE_TITLE);
-
-		ScrollView scrollPanel = new ScrollView(this);
-		scrollPanel.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-				LayoutParams.FILL_PARENT));
-
-		final LinearLayout mainPanel = new LinearLayout(this);
-		mainPanel.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
-				LayoutParams.FILL_PARENT));
-		mainPanel.setOrientation(LinearLayout.VERTICAL);
-
-		RadioGroup sourcesRadioGroup = new RadioGroup(this);
-
-		LinearLayout.LayoutParams layoutParams = new RadioGroup.LayoutParams(
-				RadioGroup.LayoutParams.WRAP_CONTENT,
-				RadioGroup.LayoutParams.WRAP_CONTENT);
-
+        List<RadioButton> buttons = new ArrayList<RadioButton>();
 		for (Integer id : MapStrategyFactory.strategies.keySet()) {
-			sourcesRadioGroup.addView(
-					buildRadioButton(MapStrategyFactory.strategies.get(id)
-							.getDescription(), id), 0, layoutParams);
+			buttons.add(buildRadioButton(MapStrategyFactory.strategies.get(id).
+                    getDescription(), id));
 		}
 
-		sourcesRadioGroup.check(Preferences.getSourceId());
-
-		sourcesRadioGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-					public void onCheckedChanged(RadioGroup group, int checkedId) {
-						Preferences.putSourceId(checkedId);
-						mapControl.setMapSource(checkedId);
-						mapSourceDialog.dismiss();
-					}
-				});
-
-		mainPanel.addView(sourcesRadioGroup);
-		scrollPanel.addView(mainPanel);
-		mapSourceDialog.setContentView(scrollPanel);
-		mapSourceDialog.show();
+        RadioButtonDialog dialog = new RadioButtonDialog(this, buttons);
+        dialog.setTitle(R.string.SELECT_MAP_SOURCE_TITLE);
+        dialog.setChecked(Preferences.getSourceId());
+        dialog.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                Preferences.putSourceId(checkedId);
+                mapControl.setMapSource(checkedId);
+            }
+        });
+        dialog.show();
 	}
 	
 	private void selectSQLiteDBFile() {
@@ -1649,10 +1487,6 @@ public class BigPlanet extends Activity {
 		}
 	}
 	
-	private static Bitmap zoomBitmap = null;	
-	private static Bitmap scaledBitmap = null;
-	private static int scaledBitmapZoomLevel = -9;
-	
 	private static Bitmap getScaledBitmap(Bitmap bmp) {
 		if (scaledBitmap == null || isMapMagnificationChanged) {
 			int width = bmp.getWidth();
@@ -1692,5 +1526,12 @@ public class BigPlanet extends Activity {
 			return false;
 		}
 	}
+
+    public void setMapMagnification(float zoom) {
+        mapMagnification = zoom;
+        isMapMagnificationChanged = true;
+        mapControl.invalidate();
+        isMapMagnificationChanged = false;
+    }
 
 }

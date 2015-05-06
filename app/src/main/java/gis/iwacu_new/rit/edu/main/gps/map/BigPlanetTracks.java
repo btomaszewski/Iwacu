@@ -1,6 +1,6 @@
-package gis.iwacu_new.rit.edu.main;
+package gis.iwacu_new.rit.edu.main.gps.map;
 
-import gis.iwacu_new.rit.edu.main.gps.map.NavControls;
+import gis.iwacu_new.rit.edu.main.R;
 
 import android.app.TabActivity;
 import android.content.Context;

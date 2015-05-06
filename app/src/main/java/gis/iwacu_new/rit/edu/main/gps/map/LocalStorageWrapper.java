@@ -3,8 +3,6 @@ package gis.iwacu_new.rit.edu.main.gps.map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import gis.iwacu_new.rit.edu.main.BigPlanet;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 

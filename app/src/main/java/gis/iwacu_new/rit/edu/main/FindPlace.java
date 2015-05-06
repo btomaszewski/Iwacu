@@ -16,6 +16,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
 import gis.iwacu_new.rit.edu.main.gps.map.BaseLoader;
+import gis.iwacu_new.rit.edu.main.gps.map.BigPlanet;
 import gis.iwacu_new.rit.edu.main.gps.map.GeoLocationHandler;
 import gis.iwacu_new.rit.edu.main.gps.map.Place;
 
