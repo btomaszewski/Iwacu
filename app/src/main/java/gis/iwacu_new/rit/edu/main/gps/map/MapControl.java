@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gis.iwacu_new.rit.edu.main.R;
-import gis.iwacu_new.rit.edu.main.gps.map.MarkerManager.Marker;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
