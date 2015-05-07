@@ -1,11 +1,19 @@
 package gis.iwacu_new.rit.edu.main;
 
+import android.util.JsonReader;
+import android.util.JsonToken;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,9 +71,44 @@ public class RecorDocument {
      * @param in - input stream from which to read when parsing a RecorDocument
      * @return new RecorDocument instance created from the input stream
      * @throws IOException
-     * @throws XmlPullParserException
      */
     public static RecorDocument parse(InputStream in) throws IOException {
+        return parseXML(in);
+    }
+
+    private static RecorDocument parseJSON(InputStream in) throws IOException {
+        try {
+            List<RecorContent> recor_doc = new ArrayList<RecorContent>();
+
+            String baseImageUrl = null;
+
+            Object value = new JsonBuilder(new InputStreamReader(in)).parse();
+            JSONObject root = (JSONObject)value;
+            baseImageUrl = root.getString("image_base_url");
+            JSONArray documents = root.getJSONArray("documents");
+            for(int i = 0; i < documents.length(); i++) {
+                JSONObject obj = documents.getJSONObject(i);
+                RecorContent content = new RecorContent();
+                recor_doc.add(content);
+
+                content.setAbout(obj.optString("about"));
+                content.setHeading(obj.optString("heading"));
+                content.setImageUrl(obj.optString("image"));
+                content.setQuizURL(obj.optString("quiz"));
+
+                JSONObject videoObject = obj.optJSONObject("video");
+                if(videoObject != null) {
+                    content.setVideoId(videoObject.getString("id"));
+                    content.setVideoText(videoObject.getString("text"));
+                }
+            }
+            return new RecorDocument(baseImageUrl, recor_doc);
+        } catch (JSONException e) {
+            throw new IOException(e);
+        }
+    }
+
+    private static RecorDocument parseXML(InputStream in) throws IOException {
         try {
             XmlPullParserFactory factory = null;
             XmlPullParser parser = null;
