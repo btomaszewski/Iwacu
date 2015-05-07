@@ -15,6 +15,7 @@ public class FileManager {
     private File rootDirectory;
 
     public FileManager(Context ctx) {
+        context = ctx;
         rootDirectory = new File(Environment.getExternalStorageDirectory(), "Iwacu");
     }
 

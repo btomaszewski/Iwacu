@@ -48,7 +48,9 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
     protected Void doInBackground(URL... urls) {
         try {
             String webJsonString = readStream(urls[0].openStream());
-            JSONObject webData = (JSONObject) new JSONTokener(webJsonString).nextValue();
+            Object value = new JSONTokener(webJsonString).nextValue();
+            Log.i(TAG, value.toString());
+            JSONObject webData = (JSONObject)value;
             JSONObject localData = loadCurrentWebAssetData();
 
             // now we handle the different things and download them if necessary
@@ -212,11 +214,13 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
             //get the image reference from the XML
             RecorContent content = recorDocument.get(i);
             String imageName = content.getImageUrl();
-            //get a local file ready
-            File imageFile = new File(iwacuImgDir, imageName);
-            //get the images URL ready
-            URL imageUrl = new URL(recorDocument.getBaseImageURL() + imageName);
-            downloadFile(imageUrl, imageFile);
+            if(!imageName.equals("")) {
+                //get a local file ready
+                File imageFile = new File(iwacuImgDir, imageName);
+                //get the images URL ready
+                URL imageUrl = new URL(recorDocument.getBaseImageURL() + imageName);
+                downloadFile(imageUrl, imageFile);
+            }
         } //end for each image reference...
     }
 }

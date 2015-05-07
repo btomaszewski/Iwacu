@@ -19,76 +19,88 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/@android:id/text1"
-        android:layout_width="match_parent"
+    <ScrollView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="5dp"
-        android:textSize="45sp" />
+        android:id="@+id/scrollView" >
 
-    <TextView
-        android:id="@+id/@android:id/content"
-        android:layout_below="@+id/@android:id/text1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="25sp" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
+            <TextView
+                android:id="@+id/@android:id/text1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:textSize="45sp" />
 
-        <ImageView
-            android:id="@+id/imageView1"
-            android:layout_below="@+id/@android:id/content"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/menu_by_map" />
+            <TextView
+                android:id="@+id/@android:id/content"
+                android:layout_below="@+id/@android:id/text1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="25sp" />
 
-        <Button
-            android:id="@+id/activityButton"
-            android:layout_below="@+id/@android:id/content"
-            android:layout_toRightOf="@+id/imageView1"
-            android:layout_width="168dp"
-            android:layout_height="163dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:paddingRight="10dp"
-               android:paddingLeft="10dp"
-            android:layout_margin="4dp"
-            style="@style/ButtonText"
-            android:background="@drawable/new_map"
-            android:text="Activity Button" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
 
-        <Button
-            android:id="@+id/VideoButton"
-            android:layout_below="@+id/@android:id/content"
-            android:layout_toRightOf="@+id/activityButton"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:paddingRight="10dp"
-            android:paddingLeft="10dp"
-            android:layout_margin="4dp"
-            style="@style/ButtonText"
-            android:background="@drawable/video"
-            android:text="Video"
-            android:layout_width="178dp" />
+                <ImageView
+                    android:id="@+id/imageView1"
+                    android:layout_below="@+id/@android:id/content"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/menu_by_map" />
 
-        <Button
-            android:id="@+id/QuizButton"
-            android:layout_below="@+id/@android:id/content"
-            android:layout_toRightOf="@+id/activityButton"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:paddingRight="10dp"
-               android:paddingLeft="10dp"
-            android:layout_margin="4dp"
-            style="@style/ButtonText"
-            android:background="@drawable/quiz"
-            android:text="" />
+                <Button
+                    android:id="@+id/activityButton"
+                    android:layout_below="@+id/@android:id/content"
+                    android:layout_toRightOf="@+id/imageView1"
+                    android:layout_width="168dp"
+                    android:layout_height="163dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:paddingRight="10dp"
+                       android:paddingLeft="10dp"
+                    android:layout_margin="4dp"
+                    style="@style/ButtonText"
+                    android:background="@drawable/new_map"
+                    android:text="Activity Button" />
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/VideoButton"
+                    android:layout_below="@+id/@android:id/content"
+                    android:layout_toRightOf="@+id/activityButton"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingLeft="10dp"
+                    android:layout_margin="4dp"
+                    style="@style/ButtonText"
+                    android:background="@drawable/video"
+                    android:text="Video"
+                    android:layout_width="178dp" />
+
+                <Button
+                    android:id="@+id/QuizButton"
+                    android:layout_below="@+id/@android:id/content"
+                    android:layout_toRightOf="@+id/activityButton"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:paddingRight="10dp"
+                       android:paddingLeft="10dp"
+                    android:layout_margin="4dp"
+                    style="@style/ButtonText"
+                    android:background="@drawable/quiz"
+                    android:text="" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <!--  revist
     <fragment

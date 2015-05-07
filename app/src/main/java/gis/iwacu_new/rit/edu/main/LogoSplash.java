@@ -59,6 +59,8 @@ public class LogoSplash extends Activity {
                     Log.e(TAG, e.getMessage());
                 } catch (ExecutionException e) {
                     Log.e(TAG, e.getMessage(), e);
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage(), e);
                 }
                 // now we start the activity for the main screen and finish this splash screen activity
                 Intent intent = new Intent(LogoSplash.this, MainScreen.class);

@@ -25,7 +25,9 @@ public class MainScreen extends Activity {
         xmlButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 Intent myIntent = new Intent(view.getContext(), SwipeTabsMainActivity.class);
-                startActivity(myIntent);
+                // using the forResult version makes it so the back button will work in
+                // the newly started activity
+                startActivityForResult(myIntent, 0);
             }
 
         });
@@ -34,7 +36,7 @@ public class MainScreen extends Activity {
         skipButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 Intent myIntent = new Intent(view.getContext(), GISToolsChoice.class);
-                startActivity(myIntent);
+                startActivityForResult(myIntent, 0);
             }
 
         });

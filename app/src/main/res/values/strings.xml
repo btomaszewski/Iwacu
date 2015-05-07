@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- The URL for the web assets file. This should not be translated. This is here so it's easy to change -->
-    <string name="web_assets_url">http://geoapps64.main.ad.rit.edu/rwanda/Iwacu/project_web_assets.txt</string>
+    <string name="web_assets_url">http://geoapps64.main.ad.rit.edu/rwanda/Iwacu/project_web_assets.json</string>
 
     <!-- URL for something else. I'm not sure what. -->
     <string name="tileServiceURL">http://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer</string>

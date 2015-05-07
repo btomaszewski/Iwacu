@@ -157,8 +157,9 @@ public class SwipeCollectionActivity extends FragmentActivity {
     public void onBackPressed() {
         // perhaps not the most elegant way, but jump back to the opening menu screen if the back button is pressed
     	//ideally, eventually fix the problem of the screen with two button that come up
-    	Intent myBackScreenIntent = new Intent(this, MainScreen.class);
-    	startActivity(myBackScreenIntent);
+//    	Intent myBackScreenIntent = new Intent(this, MainScreen.class);
+//    	startActivity(myBackScreenIntent);
+        finish();
         super.onBackPressed();
     }
 

@@ -35,8 +35,6 @@ import android.widget.TextView;
 
 public class SwipeTabsMainActivity extends FragmentActivity implements ActionBar.TabListener {
 
-    public static final String LEARNING_CONTENT = null;
-
 	/**
      * The {@link android.support.v4.view.PagerAdapter} that will provide fragments for each of the
      * three primary sections of the app. We use a {@link android.support.v4.app.FragmentPagerAdapter}
@@ -66,7 +64,7 @@ public class SwipeTabsMainActivity extends FragmentActivity implements ActionBar
 
         // Specify that the Home/Up button should be enabled, since there is a hierarchical
         // parent.
-        actionBar.setHomeButtonEnabled(false);
+        actionBar.setHomeButtonEnabled(true);
 
         // Specify that we will be displaying tabs in the action bar.
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
