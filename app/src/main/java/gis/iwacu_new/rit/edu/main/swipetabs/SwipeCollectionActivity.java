@@ -225,10 +225,10 @@ public class SwipeCollectionActivity extends FragmentActivity {
             Bundle args = getArguments();
            
         	
-        	((TextView) rootView.findViewById(android.R.id.text1)).setText(
+        	((TextView) rootView.findViewById(R.id.text1)).setText(
         	    		args.getString(HEADING)); 
             
-        	((TextView) rootView.findViewById(android.R.id.content)).setText(
+        	((TextView) rootView.findViewById(R.id.content)).setText(
     	    		args.getString(ABOUT)); 
         	
             

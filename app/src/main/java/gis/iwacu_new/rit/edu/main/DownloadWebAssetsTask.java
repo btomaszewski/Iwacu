@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Downloads assets from the web.
@@ -47,7 +48,10 @@ public class DownloadWebAssetsTask extends AsyncTask<URL, Void, Void> {
 
     protected Void doInBackground(URL... urls) {
         try {
-            String webJsonString = readStream(urls[0].openStream());
+            URL jsonUrl = urls[0];
+            URLConnection urlCon = jsonUrl.openConnection();
+            urlCon.setConnectTimeout(1000);
+            String webJsonString = readStream(urlCon.getInputStream());
             Object value = new JSONTokener(webJsonString).nextValue();
             Log.i(TAG, value.toString());
             JSONObject webData = (JSONObject)value;
