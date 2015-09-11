@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, IwacuActivity!</string>
+    <string name="app_name">Iwacu</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">The project Promoting spatial thinking in natural resource management through community mapping: \n 
+        the case of urban and rural secondary schools is supported by Innovation for Education, a partnership \n 
+        between the Governments of Rwanda and the UK. BT</string>
+        
+     <string name="hello1">GEOGRAPHY OF RWANDA</string>
+        
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="GPS">GPS</string>
+    <string name="GPS_Icon">GPS Icon</string>
+    <string name="Network">Network</string>
+    <string name="Network_Icon">Network Icon</string>
+    <string name="Criteria">Criteria</string>
+    <string name="Criteria_Icon">Criteria Icon</string>
+    <string name="Map">Map</string>
+    <string name="Sat_data">Sat data</string>
+    <string name="Pause">Pause</string>
+    <string name="Start">Start</string>
+    <string name="Stop">Stop</string>
+    <string name="Email">Email</string>
+    <string name="redCircle">Red Circle</string>
+    <string name="blueCircle">Blue Circle</string>
+    <string name="blackDiamond">Black Diamond</string>
+    <string name="greenDiamond">Green Diamond</string>
+    <string name="redDiamond">Red Diamond</string>
+    <string name="bestAvailableImageView">Best Available ImageView</string>
+    
+    <string name="tileServiceURL">http://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer</string>
+    
+    
+    <string name="mapping_activity">Mapping Tools</string>
+    <string name="recor_rwanda">Rwandan Environment</string>
+    <string name="hello_world2">Rwandan Environment Outlook / RECOR</string>
+     
+    
+    <string name="title_intro">Into</string>
+    <string name="title_recor">Rwandan Environment</string>
+    <string name="title_mapping">Mapping Tools</string>
+    
+    <string name="try_demo_title">Limitation of demo version</string>
+    <string name="try_demo_message">Sorry, You cannot do it in demo version.</string> 
+    
+    <string name="this_is_demo_title">Demo version</string>
+    <string name="this_is_demo_message">This is demo version, so you must wait 7 seconds before start.</string> 
+    
+    <string name="search_label">Place Name</string>
+    <string name="search_hint">e.g., Taipei</string>
+    
+    
+    
+    <string name="YES_LABEL">Yes</string>
+    <string name="NO_LABEL">No</string>
+    <string name="OK_LABEL">OK</string>
+    <string name="CANCEL_LABEL">Cancel</string>
+    <string name="website">Web Site</string>
+    
+    <string name="ADD_BUTTON">Add</string>
+    <string name="SAVE_BUTTON">Save</string>
+    
+    <string name="REMOVE_BOOKMARK_TITLE">Remove bookmark</string>
+    <string name="REMOVE_BOOKMARK_MESSAGE">Are you sure?</string>
+	<string-array name="bookmark_items_dialog">
+		<item>View</item>
+		<item>Edit</item>
+		<item>Delete</item>
+	</string-array>
+    
+    <string name="auto_follow_disabled">Auto-Follow Disabled</string>
+    <string name="auto_follow_enabled">Auto-Follow Enabled</string>
+    <string name="track_enabled">Start tracking</string>
+    <string name="start_tracking">Start tracking ?</string>
+    <string name="finish_tracking">Finish tracking ?</string>
+    <string name="MY_LOCATION_MENU">My Location</string>
+    <string name="SEARCH_MENU">Search</string>
+    <string name="ABOUT_MENU">About</string>
+    <string name="MAP_SOURCE_MENU">Map source</string>
+    <string name="SQLiteDB_MENU">SQLite Maps</string>
+    <string name="TOOLS_MENU">More</string>
+    <string name="CACHE_MAP_MENU">Save map for offline use</string>
+    <string name="NETWORK_MODE_MENU">Network mode</string>
+    <string name="MAP_MAGNIFICATION_MENU">Map magnification</string>
+    <string name="BOOKMARKS_MENU">Bookmarks</string>
+    <string name="BOOKMARK_ADD_MENU">Add</string>
+    <string name="BOOKMARKS_VIEW_MENU">View</string>
+    <string name="SELECT_OBJECT_MESSAGE">Double click to select object</string>
+    
+    <string name="SELECT_NETWORK_MODE_LABEL">Do you want to use network to download the maps?</string>
+    <string name="OFFLINE_MODE_LABEL">No</string>
+    <string name="ONLINE_MODE_LABEL">Yes</string>
+    
+    <string name="SELECT_MAP_SOURCE_TITLE">Select map</string>
+    <string name="SELECT_SQLite_DATABASE">Select SQLite DB for saving maps</string>
+    <string name="SELECT_SQLite_Folder">The folder %s includes:</string>
+    
+    <string name="GPS_OFFSET_MENU">Adjust map offset</string>
+    <string name="OFFSET_MESSAGE">The moved distances below are just estimated values.</string>
+    <string name="OFFSET_X">Shift map east %s m.</string>
+    <string name="OFFSET_Y">Shift map south %s m.</string>
+    
+    <string name="DOWNLOAD_MESSAGE_PATTERN">{0} tile(s) of {1} downloaded({2}KB), {3} error(s)</string>
+    
+    <string name="REGION_RADIUS_TITLE">Select radius of region</string>
+    
+    <string name="DOWNLOAD_COMPLETE_TITLE">Download complete</string>
+    <string name="ADD_BOOKMARK_TITLE">Add bookmark</string>
+    <string name="UPDATE_BOOKMARK_TITLE">Update bookmark</string>
+    <string name="DOWNLOAD_COMPLETE_MESSAGE">All tiles has been saved</string>
+    
+    <string name="EMPTY_NAME_ERROR">Name cannot be empty</string>
+    
+    <string name="DOWNLOAD_IN_PROGRESS_MESSAGE">Downloading...</string>
+    
+    <string name="DOWNLOAD_PROGRESS_MESSAGE_PATTERN">{0} km, {1} tile(s) / {2} KB</string>
+    
+    <string name="ABOUT_TITLE">Big Planet Tracks</string>
+    <string name="ABOUT_MESSAGE">Soon</string>
+    <string name="ABOUT_URL">http://android-map.blogspot.com</string>
+    
+    <string name="sdcard_unavailable">Please insert SD card and restart application.</string>
+    <string name="msg_please_wait">Please wait</string>
+    <string name="msg_search_results">Search results</string>
+    <string name="msg_no_search_results">Your search for \"{query}\" did not match any locations.</string>
+    <string name="msg_unable_to_get_current_location">Unable to get current location.</string>
+    <string name="msg_connect_to_server">Connecting to server...</string>
+    <string name="msg_no_connection">No network connection.</string>
+    
+    <string name="save_map_radius">Radius: </string>
+    <string name="save_map_download">Download: </string>
+    <string name="save_map_button_start_download">Start download</string>
+    
+    <string name="bookmark_name">Name</string>
+    <string name="bookmark_description">Description</string>
+    
+    <string name="clearSaveTrackFales">Please stop recording the track first.</string>
+    <string name="notify_recording">Recording your track...</string>
+    
+    <string-array name="sample_names">
+        <item>Projection</item>
+        <item>Buffer</item>
+        <item>Union and Difference</item>
+        <item>Spatial Relationships</item>
+        <item>Measure</item>
+    </string-array>
+    
+     <style name="ButtonText">
+	   <item name="android:layout_width">fill_parent</item>
+	    <item name="android:layout_height">wrap_content</item>
+	    <item name="android:textColor">#ffffff</item>
+	    <item name="android:gravity">center</item>
+	    <item name="android:layout_margin">3dp</item>
+	    <item name="android:textStyle">normal</item>
+	    <item name="android:textSize">20sp</item>
+	    <item name="android:shadowColor">#000000</item>
+	    <item name="android:shadowDx">1</item>
+	    <item name="android:shadowDy">1</item>
+	    <item name="android:shadowRadius">2</item>
+	</style>
+	
+     <!--  BT added - strings used in versioning and external files -->
+      <string name="split_character1">~</string>
+      <string name="split_character2">_</string>
+      <string name="learning_content">learning_content</string>
+     <string name="learning_version">learning_version</string>
+     <string name="learning_version_default">3</string>
+     <string name="offline_database">offline_database</string>
+     <string name="offline_database_version">offline_database_version</string>
+     <string name="offline_database_version_default">1</string>
+     
+     
+     
+     <string name="Iwacu_Directory">Iwacu/</string>
+     <string name="Iwacu_Images_Directory">Iwacu/Images/</string>
+     <string name="Iwacu_Images_Web_Directory">img/</string>
+     <string name="learning_file_name">spatial_thinking_content.xml</string>
+      <string name="tool_argument_tool_name">tool_argument_tool_name</string>
+     <string name="tool_argument_tool_data">tool_argument_tool_data</string>
+     <string name="tool_argument_key_name">tool_argument_key_name</string>
+     <string name="video_argument_key_name">video_argument_key_name</string>
+     <string name="video_id_argument_name">video_id_argument_name</string>
+     
+     <string name="playerview_text">This is a YouTubePlayerView!</string>
+      <string name="error_player">There was an error initializing the YouTubePlayer (%1$s)</string>
+      
+      <string name="offline_map_database_directory">offline_database/</string>
+      <string name="offline_map_database_name">world.sqlitedb</string>
+      
+     
+      <string name="dummy_section_text">Section %1d is just a dummy section.</string>
+      
+      <string name="map_xmin">3215033.8496</string>
+      <string name="map_ymin">-307736.3258</string>
+      <string name="map_xmax">3429180.3233</string>
+      <string name="map_ymax">-125947.1489</string>
+     
+      <string name="gps_activity">gps</string>
+      
+     
+</resources>

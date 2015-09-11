@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    
+    <string-array name="DistanceUnits">
+        <item>Meters</item>
+        <item>Miles</item>
+        <item>Yards</item>
+        <item>Feet</item>
+        <item>Kilometers</item>
+    </string-array>
+
+</resources>

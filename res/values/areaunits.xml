@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <string-array name="AreaUnits">
+        <item>Square Meters</item>
+        <item>Acres</item>
+        <item>Square Miles</item>
+        <item>Square Yards</item>
+        <item>Square Kilometers</item>
+    </string-array>
+
+</resources>
